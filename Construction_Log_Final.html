@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Construction Log — Final</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1223">
+<style>
+:root{--bg:#0b1223;--page:#0e152b;--card:#121a33;--line:#1f2b46;--text:#e7ebf2;--muted:#9aa6c2;--accent:#2f6feb;--warn:#ef4444}
+:root.light{--bg:#fff;--page:#fff;--card:#fff;--line:#d1d5db;--text:#111827;--muted:#6b7280;--accent:#2f6feb;--warn:#ef4444}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--page);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{max-width:1100px;margin:0 auto;padding:8px 12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:18px}
+main{max-width:1100px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+input,textarea,select{width:100%;background:var(--page);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px}
+textarea{min-height:92px;resize:vertical}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:6px;vertical-align:top}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer}
+.btn.secondary{background:#1b2544}.btn.warn{background:var(--warn)}
+.badge{background:transparent;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.list-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.photos{display:flex;flex-wrap:wrap;gap:8px}
+.ph-wrap{position:relative;width:120px}.ph{width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.ph-tools{position:absolute;right:4px;top:4px;display:flex;gap:4px}
+.icon-btn{background:rgba(0,0,0,.5);border:none;color:#fff;padding:4px 6px;border-radius:6px;cursor:pointer}
+:root.light .icon-btn{background:rgba(255,255,255,.85);color:#111}
+.ph-note{width:120px;margin-top:4px}
+.footer{color:var(--muted);font-size:12px;margin-top:12px;text-align:center}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:12px;max-width:95vw;max-height:92vh;padding:10px;display:flex;flex-direction:column;gap:8px}
+.viewer-img{max-width:90vw;max-height:70vh;border-radius:10px;border:1px solid var(--line);object-fit:contain}
+.viewer-bar{display:flex;gap:8px;justify-content:space-between;align-items:center}
+@media print{
+  :root,:root.light{--page:#fff;--card:#fff;--line:#000;--text:#000;--muted:#000}
+  body{background:#fff;color:#000}
+  header,.btn,.badge,video{display:none!important}
+  .card{background:#fff;border:1px solid #000}
+  input,textarea,select{background:#fff;color:#000;border:1px solid #000}
+  a:link,a:visited{color:#000}
+  body:not(.print-photos) .photos{display:none!important}
+  body.print-photos .photos{display:flex!important}
+  body.print-large .ph{width:200px;height:150px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Construction Log</h1>
+    <div class="row">
+      <button id="btnTheme" class="btn secondary">🌓 Light/Dark</button>
+      <button id="btnExportCSV" class="btn secondary">Export (Excel/CSV)</button>
+      <div class="row" style="align-items:center;gap:6px">
+        <input id="printPhotos" type="checkbox"><label for="printPhotos" style="margin:0">Include photos</label>
+        <input id="printLarge" type="checkbox"><label for="printLarge" style="margin:0">Large photos</label>
+      </div>
+      <button id="btnPrint" class="btn secondary">Print</button>
+      <button id="btnHours" class="btn secondary">Hours report</button>
+      <button id="btnOpenDraft" class="btn secondary">Open last draft</button>
+      <button id="btnSave" class="btn">Save entry</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="card">
+  <div class="grid-3">
+    <div><label>Date</label><input id="date" type="date"></div>
+    <div><label>Site / Project</label><input id="site" placeholder="e.g. Pipeline A-12"></div>
+    <div><label>Shift</label><input id="shift" placeholder="Day / Night or 08:00–17:00"></div>
+  </div>
+  <div class="grid-2" style="margin-top:10px">
+    <div><label>Supervisor</label><input id="supervisor" placeholder="Responsible person"></div>
+    <div class="row" style="gap:10px">
+      <div style="flex:1"><label>Total people (auto)</label><input id="crewCount" type="text" readonly></div>
+      <div style="flex:1"><label>Total man-hours (auto)</label><input id="manHours" type="text" readonly></div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:10px">
+    <div><label>Done today</label><textarea id="done" placeholder="Work completed…"></textarea></div>
+    <div><label>Plan for tomorrow</label><textarea id="plan" placeholder="Plan…"></textarea></div>
+  </div>
+  <div class="grid-2" style="margin-top:10px">
+    <div><label>Weather (opt.)</label><input id="weather" placeholder="e.g. Clear 24°C"></div>
+    <div><label>Location (opt.)</label><input id="location" placeholder="coords or description"></div>
+  </div>
+  <div class="row" style="gap:8px;margin-top:10px">
+    <span class="badge" id="autosaveInfo">Autosave: ready</span>
+    <button id="btnAddCrew" class="btn secondary">+ Crew</button>
+  </div>
+</section>
+
+<section class="card" id="crewSection" style="margin-top:12px">
+  <label>Crews</label>
+  <div id="crews"></div>
+</section>
+
+<section class="card" style="margin-top:12px">
+  <h3 style="margin-top:0">Log</h3>
+  <div id="list" class="list"></div>
+</section>
+
+<div class="footer">Construction Log — Final (offline, localStorage)</div>
+</main>
+
+<div id="reportModal" class="modal">
+  <div class="box">
+    <div class="viewer-bar">
+      <h3 style="margin:0">Hours by Employee</h3>
+      <div>
+        <button id="btnExportReport" class="btn secondary">Export report</button>
+        <button id="btnCloseReport" class="btn warn">✕</button>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:10px">
+      <div><label>From (saved dates)</label><select id="fromDate"></select></div>
+      <div><label>To (saved dates)</label><select id="toDate"></select></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="btnBuildReport" class="btn">Generate</button>
+    </div>
+    <div id="reportTable" style="margin-top:10px;max-height:55vh;overflow:auto"></div>
+  </div>
+</div>
+
+<div id="photoModal" class="modal">
+  <div class="box">
+    <img id="viewerImg" class="viewer-img" alt="photo">
+    <div class="viewer-bar">
+      <div id="viewerCaption" style="flex:1;color:var(--muted)"></div>
+      <div>
+        <button id="btnPrevPhoto" class="btn secondary">Prev</button>
+        <button id="btnNextPhoto" class="btn secondary">Next</button>
+        <button id="btnClosePhoto" class="btn warn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function loadTheme(){ try{ if(localStorage.getItem('cl_theme')==='light') document.documentElement.classList.add('light'); }catch(e){} }
+function toggleTheme(){ document.documentElement.classList.toggle('light'); try{ localStorage.setItem('cl_theme', document.documentElement.classList.contains('light')?'light':'dark'); }catch(e){} }
+loadTheme();
+
+const DB_NAME='constructionlog_final', DRAFT_KEY='constructionlog_final_draft';
+let editingId=null; const els={}; let crews=[]; let autosaveTimer=null, dirty=false;
+const getAll=()=>{ try{return JSON.parse(localStorage.getItem(DB_NAME)||'[]');}catch(e){return[];} };
+const putObj=o=>{ let arr=getAll(); if(o.id===0){ localStorage.setItem(DRAFT_KEY, JSON.stringify(o)); return 0; }
+  if(!o.id) o.id = (arr.length? Math.max(...arr.map(x=>x.id||0))+1 : 1);
+  const i=arr.findIndex(x=>x.id===o.id); if(i>=0) arr[i]=o; else arr.push(o);
+  localStorage.setItem(DB_NAME, JSON.stringify(arr)); return o.id; };
+const getObj=id=> id===0 ? (JSON.parse(localStorage.getItem(DRAFT_KEY)||'null')) : (getAll().find(x=>x.id===id)||null);
+const delObj=id=>{ if(id===0){ localStorage.removeItem(DRAFT_KEY); return;} let arr=getAll().filter(x=>x.id!==id); localStorage.setItem(DB_NAME, JSON.stringify(arr)); };
+
+function scheduleAutosave(){ dirty=true; clearTimeout(autosaveTimer); autosaveTimer=setTimeout(autoSaveDraft,900); }
+function autoSaveDraft(){ if(!dirty) return;
+  const d={ id:0, draftOf:(editingId||null), date:els.date.value||'', site:els.site.value||'', shift:els.shift.value||'', supervisor:els.supervisor.value||'', crewCount:els.crewCount.value||'', manHours:els.manHours.value||'', done:els.done.value||'', plan:els.plan.value||'', weather:els.weather.value||'', location:els.location.value||'', crews:crews, updatedAt:new Date().toISOString(), _isDraft:true };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); dirty=false;
+  document.getElementById('autosaveInfo').textContent='Autosaved: '+new Date().toLocaleTimeString();
+}
+setInterval(()=>{ if(dirty) autoSaveDraft(); }, 25000);
+
+const escapeHtml=s=>String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function renderTotals(){ const p=crews.reduce((s,c)=>s+Number(c.people||0),0), h=crews.reduce((s,c)=>s+Number(c.hours||0),0);
+  els.crewCount.value=p?String(p):''; els.manHours.value=h?String(h):''; }
+
+function addCrew(){ crews.push({name:'',people:'',hours:'',employees:[],materials:[],notes:'',photos:[]}); renderCrews(); scheduleAutosave(); }
+function removeCrew(i){ crews.splice(i,1); renderCrews(); scheduleAutosave(); }
+function updateCrew(i,key,val){ const c=crews[i]; if(!c) return; if(key==='people'||key==='hours'){ c[key]=(val===''? '' : Number(val||0)); } else { c[key]=val; } renderTotals(); scheduleAutosave(); }
+
+function renderEmployeesTable(ci){
+  const list=crews[ci].employees;
+  let rows=list.map((e,i)=>`<tr>
+    <td><input placeholder="Name" value="${escapeHtml(e.name||'')}" data-ci="${ci}" data-i="${i}" data-k="name" class="empFld"></td>
+    <td><input placeholder="Role" value="${escapeHtml(e.role||'')}" data-ci="${ci}" data-i="${i}" data-k="role" class="empFld"></td>
+    <td><input type="number" step="0.1" placeholder="Hours" value="${(Number(e.hours||0)||'')}" data-ci="${ci}" data-i="${i}" data-k="hours" class="empFld"></td>
+    <td><button class="btn warn" data-ci="${ci}" data-i="${i}" data-del="emp">✕</button></td></tr>`).join('');
+  if(!rows) rows=`<tr><td colspan="4" style="color:#9ca3af">No employees</td></tr>`;
+  return `<div style="overflow:auto"><table><thead><tr><th>Name</th><th>Role</th><th>Hours</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function addEmployee(ci){ crews[ci].employees.push({name:'',role:'',hours:''}); renderCrews(); scheduleAutosave(); }
+function updateEmployee(ci,ei,key,val){
+  if(key==='hours') val=(val===''? '' : Number(val||0));
+  crews[ci].employees[ei][key]=val;
+  crews[ci].hours=crews[ci].employees.reduce((s,e)=>s+Number(e.hours||0),0)||'';
+  renderTotals(); scheduleAutosave();
+}
+function removeEmployee(ci,ei){ crews[ci].employees.splice(ei,1); crews[ci].hours=crews[ci].employees.reduce((s,e)=>s+Number(e.hours||0),0)||''; renderCrews(); scheduleAutosave(); }
+
+function renderMaterialsTable(ci){
+  const list=crews[ci].materials;
+  let rows=list.map((m,i)=>`<tr>
+    <td><input placeholder="Material" value="${escapeHtml(m.material||'')}" data-ci="${ci}" data-i="${i}" data-k="material" class="matFld"></td>
+    <td><input placeholder="Code" value="${escapeHtml(m.code||'')}" data-ci="${ci}" data-i="${i}" data-k="code" class="matFld"></td>
+    <td><input placeholder="Source" value="${escapeHtml(m.source||'')}" data-ci="${ci}" data-i="${i}" data-k="source" class="matFld"></td>
+    <td><input type="number" step="0.01" placeholder="Qty" value="${(m.qty===''?'':Number(m.qty||0))}" data-ci="${ci}" data-i="${i}" data-k="qty" class="matFld"></td>
+    <td><button class="btn warn" data-ci="${ci}" data-i="${i}" data-del="mat">✕</button></td></tr>`).join('');
+  if(!rows) rows=`<tr><td colspan="5" style="color:#9ca3af">No materials</td></tr>`;
+  return `<div style="overflow:auto"><table><thead><tr><th>Material</th><th>Code</th><th>Source</th><th>Qty</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function addMaterial(ci){ crews[ci].materials.push({material:'',code:'',source:'',qty:''}); renderCrews(); scheduleAutosave(); }
+function updateMaterial(ci,mi,key,val){ if(key==='qty') val=(val===''? '' : Number(val||0)); crews[ci].materials[mi][key]=val; scheduleAutosave(); }
+
+function renderCrewPhotosPreview(ci){
+  const h=document.getElementById('cprev-'+ci); if(!h) return; h.innerHTML='';
+  (crews[ci].photos||[]).forEach((p,pi)=>{
+    const wrap=document.createElement('div'); wrap.className='ph-wrap';
+    const img=document.createElement('img'); img.className='ph'; img.src=p.data; img.alt=p.name||('photo '+(pi+1)); wrap.appendChild(img);
+    const tools=document.createElement('div'); tools.className='ph-tools';
+    const b1=document.createElement('button'); b1.className='icon-btn'; b1.textContent='🔍'; b1.onclick=()=>openPhoto(ci,pi);
+    const b2=document.createElement('button'); b2.className='icon-btn'; b2.textContent='🗑'; b2.onclick=()=>deletePhoto(ci,pi);
+    tools.appendChild(b1); tools.appendChild(b2); wrap.appendChild(tools); h.appendChild(wrap);
+    const note=document.createElement('input'); note.className='ph-note'; note.placeholder='Photo note'; note.value=p.note||'';
+    note.oninput=(ev)=>{ crews[ci].photos[pi].note=ev.target.value; scheduleAutosave(); }; h.appendChild(note);
+  });
+}
+async function handleCrewFiles(ci,fl){ const files=Array.from(fl||[]); for(const f of files){
+  const ab=await f.arrayBuffer(); const b64=btoa(String.fromCharCode(...new Uint8Array(ab)));
+  (crews[ci].photos||(crews[ci].photos=[])).push({name:f.name,type:f.type,data:'data:'+f.type+';base64,'+b64,note:''});
+}
+renderCrewPhotosPreview(ci); scheduleAutosave(); }
+function deletePhoto(ci,pi){ if(!confirm('Delete this photo?')) return; crews[ci].photos.splice(pi,1); renderCrewPhotosPreview(ci); scheduleAutosave(); }
+let viewer={ci:0,pi:0};
+function openPhoto(ci,pi){ viewer.ci=ci; viewer.pi=pi; const m=document.getElementById('photoModal'); const img=document.getElementById('viewerImg'); const cap=document.getElementById('viewerCaption'); const p=(crews[ci].photos||[])[pi]; if(!p) return; img.src=p.data; cap.textContent=(p.note||p.name||'Photo'); m.style.display='flex'; }
+const closePhoto=()=>document.getElementById('photoModal').style.display='none';
+const prevPhoto=()=>{ const arr=crews[viewer.ci].photos||[]; if(!arr.length) return; viewer.pi=(viewer.pi-1+arr.length)%arr.length; openPhoto(viewer.ci,viewer.pi); };
+const nextPhoto=()=>{ const arr=crews[viewer.ci].photos||[]; if(!arr.length) return; viewer.pi=(viewer.pi+1)%arr.length; openPhoto(viewer.ci,viewer.pi); };
+
+async function saveEntry(){ const e={ id:editingId||undefined, date:els.date.value||'', site:els.site.value||'', shift:els.shift.value||'', supervisor:els.supervisor.value||'', crewCount:els.crewCount.value||'', manHours:els.manHours.value||'', done:els.done.value||'', plan:els.plan.value||'', weather:els.weather.value||'', location:els.location.value||'', crews:crews, updatedAt:new Date().toISOString() }; const id=putObj(e); if(!editingId) editingId=id; delObj(0); document.getElementById('autosaveInfo').textContent='Saved'; await renderList(); alert('Saved'); }
+async function renderList(){ const out=document.getElementById('list'); out.innerHTML=''; const rows=(getAll()||[]).filter(e=>e&&e.id!==0); if(rows.length===0){ out.innerHTML='<div class="list-item">No entries yet.</div>'; return; } rows.sort((a,b)=>(b.date||'').localeCompare(a.date||'')); rows.forEach(e=>{ const d=document.createElement('div'); d.className='list-item'; const crewBadges=(e.crews||[]).map(c=>`<span class="badge">${escapeHtml(c.name||'Crew')}: 👥 ${c.people||''} • ⏱ ${c.hours||''} • 📷 ${(c.photos||[]).length||''}</span>`).join(' '); d.innerHTML=`<div class="row" style="justify-content:space-between"><div><b>${escapeHtml(e.date||'')}</b> — ${escapeHtml(e.site||'')}</div><div class="row"><button class="btn secondary" data-edit="${e.id}">Edit</button><button class="btn warn" data-del="${e.id}">Delete</button></div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${crewBadges}</div>`; out.appendChild(d); }); }
+async function editEntry(id){ const e=getObj(id); if(!e) return; editingId=e.id; ['date','site','shift','supervisor','done','plan','weather','location'].forEach(k=>els[k].value=e[k]||''); els.crewCount.value=e.crewCount||''; els.manHours.value=e.manHours||''; crews=Array.isArray(e.crews)?e.crews:[]; renderCrews(); renderTotals(); window.scrollTo({top:0,behavior:'smooth'}); }
+async function delEntry(id){ if(!confirm('Delete this entry?')) return; delObj(id); await renderList(); }
+
+function exportCSV(){ const all=(getAll()||[]).filter(e=>e&&e.id!==0); const rows=[['Date','Project','Supervisor','Crew','Employee','Role','Hours','Material','Code','Source','Qty','Photos','Notes']]; all.forEach(e=>{ if(!e.crews||e.crews.length===0){ rows.push([e.date||'',e.site||'',e.supervisor||'','','','','','','','','','',e.done||'']); }
+else { e.crews.forEach(c=>{ const emp=c.employees||[], mat=c.materials||[]; const maxLen=Math.max(1,emp.length,mat.length); const photoCount=(c.photos||[]).length||''; for(let i=0;i<maxLen;i++){ const ee=emp[i]||{}, mm=mat[i]||{}; rows.push([e.date||'',e.site||'',e.supervisor||'',c.name||'',ee.name||'',ee.role||'',(Number(ee.hours||0)||''),mm.material||'',mm.code||'',mm.source||'',(mm.qty===''?'':Number(mm.qty||0)),photoCount,c.notes||'']); } }); } }); const csv=rows.map(r=>r.map(v=>(''+(v==null?'':v)).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('
+'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='construction_log.csv'; a.click(); URL.revokeObjectURL(a.href); }
+function printReport(){ const ph=document.getElementById('printPhotos'), lg=document.getElementById('printLarge'); document.body.classList.toggle('print-photos', !!(ph && ph.checked)); document.body.classList.toggle('print-large', !!(lg && lg.checked)); window.print(); setTimeout(()=>{document.body.classList.remove('print-photos');document.body.classList.remove('print-large');}, 500); }
+
+function openReport(){ document.getElementById('reportModal').style.display='flex'; populateReportDates(); }
+function closeReport(){ document.getElementById('reportModal').style.display='none'; }
+function populateReportDates(){ const dates=[...new Set((getAll()||[]).filter(e=>e&&e.id!==0).map(e=>e.date).filter(Boolean))].sort(); const fromSel=document.getElementById('fromDate'), toSel=document.getElementById('toDate'); fromSel.innerHTML=''; toSel.innerHTML=''; dates.forEach(d=>{ const o1=document.createElement('option');o1.value=d;o1.textContent=d; fromSel.appendChild(o1); const o2=document.createElement('option');o2.value=d;o2.textContent=d; toSel.appendChild(o2); }); if(dates.length){ fromSel.value=dates[0]; toSel.value=dates[dates.length-1]; } }
+function buildReport(){ const all=(getAll()||[]).filter(e=>e&&e.id!==0); const f=document.getElementById('fromDate').value, t=document.getElementById('toDate').value; const inRange=e=>!f||!t|| (String(e.date||'')>=f && String(e.date||'')<=t); const agg={}; all.filter(inRange).forEach(e=>{ (e.crews||[]).forEach(c=>{ (c.employees||[]).forEach(emp=>{ const key=(emp.name||'Unnamed')+'|'+(c.name||'Crew'); const prev=agg[key]||{employee:emp.name||'Unnamed', crew:c.name||'Crew', hours:0, days:new Set()}; prev.hours+=Number(emp.hours||0); prev.days.add(e.date||''); agg[key]=prev; });});}); const rows=Object.values(agg).map(x=>({employee:x.employee, crew:x.crew, hours:x.hours||'', days:x.days.size})).sort((a,b)=>b.hours-a.hours); const wrap=document.getElementById('reportTable'); wrap.innerHTML=''; const tbl=document.createElement('table'); tbl.innerлоп="thead><tr><th>Employee</th><th>Crew</th><th>Total hours</th><th>Days counted</th></tr></thead>"; const tb=document.createElement('tbody'); rows.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.employee)}</td><td>${escapeHtml(r.crew)}</td><td>${r.hours||''}</td><td>${r.days||''}</td>`; tb.appendChild(tr); }); if(rows.length===0){ const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4" style="color:#9ca3af">No data in this range</td>'; tb.appendChild(tr); } tbl.appendChild(tb); wrap.appendChild(tbl); }
+function exportReportCSV(){ const from=document.getElementById('fromDate').value, to=document.getElementById('toDate').value; const all=(getAll()||[]).filter(e=>e&&e.id!==0); const inRange=e=>!from||!to|| (String(e.date||'')>=from && String(e.date||'')<=to); const agg={}; all.filter(inRange).forEach(e=>{ (e.crews||[]).forEach(c=>{ (c.employees||[]).forEach(emp=>{ const key=(emp.name||'Unnamed')+'|'+(c.name||'Crew'); const prev=agg[key]||{employee:emp.name||'Unnamed', crew:c.name||'Crew', hours:0, days:new Set()}; prev.hours+=Number(emp.hours||0); prev.days.add(e.date||''); agg[key]=prev; });});}); const data=[['From',from||'','To',to||''],[],['Employee','Crew','Total hours','Days counted']]; Object.values(agg).forEach(r=> data.push([r.employee,r.crew,r.hours||'',r.days.size||'' ])); const csv=data.map(r=>r.map(v=>(''+(v==null?'':v)).replace(/"/g,'""')).map(v=>`"${v}"`).join(',')).join('
+'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='hours_report.csv'; a.click(); URL.revokeObjectURL(a.href); }
+
+function renderCrews(){
+  const wrap=document.getElementById('crews'); wrap.innerHTML='';
+  if(crews.length===0){ wrap.innerHTML='<div class="list-item">No crews yet. Press + Crew.</div>'; renderTotals(); return; }
+  crews.forEach((c,idx)=>{ if(!Array.isArray(c.employees)) c.employees=[]; if(!Array.isArray(c.materials)) c.materials=[]; if(!Array.isArray(c.photos)) c.photos=[];
+    const card=document.createElement('div'); card.className='list-item';
+    card.innerHTML=`
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="row" style="flex:1">
+          <input style="flex:1" placeholder="Crew name / subcontractor" value="${escapeHtml(c.name||'')}" data-ci="${idx}" data-k="name" class="crewFld">
+          <input style="width:120px" placeholder="People" value="${c.people===0?'':escapeHtml(String(c.people||''))}" data-ci="${idx}" data-k="people" class="crewFld">
+          <input style="width:140px" placeholder="Hours" value="${c.hours===0?'':escapeHtml(String(c.hours||''))}" data-ci="${idx}" data-k="hours" class="crewFld">
+        </div>
+        <button class="btn warn" data-del-crew="${idx}">✕</button>
+      </div>
+      <div style="margin-top:10px"><label>Employees</label>${renderEmployeesTable(idx)}<div class="row" style="margin-top:6px"><button class="btn secondary" data-add-emp="${idx}">+ Employee</button></div></div>
+      <div style="margin-top:10px"><label>Materials</label>${renderMaterialsTable(idx)}<div class="row" style="margin-top:6px"><button class="btn secondary" data-add-mat="${idx}">+ Row</button></div></div>
+      <div class="grid-2" style="margin-top:10px">
+        <div><label>Crew notes</label><textarea data-ci="${idx}" data-k="notes" class="crewNote">${escapeHtml(c.notes||'')}</textarea></div>
+        <div><label>Crew photos (no limit)</label>
+            <input id="file-${idx}" type="file" accept="image/*" multiple>
+            <div class="photos" id="cprev-${idx}"></div>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+    const fi=document.getElementById('file-'+idx); fi.addEventListener('change',e=>handleCrewFiles(idx,e.target.files));
+    renderCrewPhotosPreview(idx);
+  });
+  renderTotals();
+}
+
+function bindStatic(){
+  ['date','site','shift','supervisor','done','plan','weather','location'].forEach(k=>els[k]=document.getElementById(k));
+  els.crewCount=document.getElementById('crewCount'); els.manHours=document.getElementById('manHours');
+  document.getElementById('btnTheme').addEventListener('click',toggleTheme);
+  document.getElementById('btnExportCSV').addEventListener('click',exportCSV);
+  document.getElementById('btnPrint').addEventListener('click',printReport);
+  document.getElementById('btnSave').addEventListener('click',saveEntry);
+  document.getElementById('btnOpenDraft').addEventListener('click',openDraft);
+  document.getElementById('btnHours').addEventListener('click',openReport);
+  document.getElementById('btnCloseReport').addEventListener('click',()=>document.getElementById('reportModal').style.display='none');
+  document.getElementById('btnBuildReport').addEventListener('click',buildReport);
+  document.getElementById('btnExportReport').addEventListener('click',exportReportCSV);
+  document.getElementById('btnPrevPhoto').addEventListener('click',prevPhoto);
+  document.getElementById('btnNextPhoto').addEventListener('click',nextPhoto);
+  document.getElementById('btnClosePhoto').addEventListener('click',closePhoto);
+
+  ['date','site','shift','supervisor','done','plan','weather','location'].forEach(k=>{
+    const e=els[k]; e.addEventListener('input',scheduleAutosave); e.addEventListener('change',scheduleAutosave); e.addEventListener('blur',scheduleAutosave);
+  });
+
+  document.getElementById('crews').addEventListener('input',e=>{
+    if(e.target.classList.contains('crewFld')){ const ci=+e.target.dataset.ci, k=e.target.dataset.k, v=e.target.value; updateCrew(ci,k,v); }
+    else if(e.target.classList.contains('crewNote')){ const ci=+e.target.dataset.ci; crews[ci].notes=e.target.value; scheduleAutosave(); }
+    else if(e.target.classList.contains('empFld')){ const ci=+e.target.dataset.ci, i=+e.target.dataset.i, k=e.target.dataset.k; updateEmployee(ci,i,k,e.target.value); }
+    else if(e.target.classList.contains('matFld')){ const ci=+e.target.dataset.ci, i=+e.target.dataset.i, k=e.target.dataset.k; updateMaterial(ci,i,k,e.target.value); }
+  });
+  document.getElementById('crews').addEventListener('click',e=>{
+    if(e.target.dataset.addEmp){ addEmployee(+e.target.dataset.addEmp); }
+    if(e.target.dataset.addMat){ addMaterial(+e.target.dataset.addMat); }
+    if(e.target.dataset.delCrew){ removeCrew(+e.target.dataset.delCrew); }
+    if(e.target.dataset.del==='emp'){ removeEmployee(+e.target.dataset.ci,+e.target.dataset.i); }
+    if(e.target.dataset.del==='mat'){ crews[+e.target.dataset.ci].materials.splice(+e.target.dataset.i,1); renderCrews(); scheduleAutosave(); }
+  });
+
+  document.getElementById('list').addEventListener('click',e=>{
+    if(e.target.dataset.edit) editEntry(+e.target.dataset.edit);
+    if(e.target.dataset.del) delEntry(+e.target.dataset.del);
+  });
+
+  document.getElementById('autosaveInfo').textContent='Autosave: ready';
+}
+function openDraft(){ const d=getObj(0); if(!d){ alert('No draft yet.'); return; } editingId=d.draftOf||null; ['date','site','shift','supervisor','done','plan','weather','location'].forEach(k=>els[k].value=d[k]||''); crews=Array.isArray(d.crews)?d.crews:[]; renderCrews(); renderTotals(); document.getElementById('autosaveInfo').textContent='Draft loaded'; }
+window.addEventListener('load', ()=>{
+  bindStatic();
+  renderList();
+  renderCrews();
+  document.getElementById('btnAddCrew').addEventListener('click',addCrew);
+});
+</script>
+</body>
+</html>
